@@ -1,0 +1,22 @@
+[project]
+name = "forgelm"
+version = "0.1.0"
+description = "Production-grade Text-to-SQL fine-tuning platform"
+requires-python = ">=3.11"
+
+dependencies = [
+    "torch",
+    "transformers",
+    "datasets",
+    "peft",
+    "trl",
+    "bitsandbytes",
+    "accelerate",
+    "sentencepiece",
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "pyyaml",
+    "python-dotenv",
+    "pytest",
+]
