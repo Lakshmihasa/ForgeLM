@@ -1,0 +1,33 @@
+# Canonical Llama-3-8B model + 4-bit quantization definition.
+#
+# Documents every model/quant/LoRA-structure setting in one place. It is
+# composable: merge it BEFORE a train/eval config so their `qlora` block
+# overrides these, e.g.
+#   merge_configs("configs/model/llama3.yaml", "configs/train/qlora_r16.yaml")
+# The runnable train/eval configs are also self-contained (they rely on the same
+# values as QLoRAConfig defaults), so this file is the readable reference rather
+# than a hard dependency.
+
+qlora:
+  model_name: meta-llama/Meta-Llama-3-8B-Instruct
+
+  # --- 4-bit NF4 quantization (the frozen base) ---
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  compute_dtype: bfloat16            # compute in bf16; only storage is 4-bit
+
+  # --- LoRA structure ---
+  # All linear layers (attention + MLP), per the QLoRA paper's finding that
+  # adapting the full set is what lets LoRA match full fine-tuning.
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  bias: none
+  task_type: CAUSAL_LM
+
+  # --- runtime ---
+  gradient_checkpointing: true
+  attn_implementation: sdpa          # or flash_attention_2 if installed
+  device_map: {"": 0}                # single GPU
+  trust_remote_code: false
+
+# To swap in Mistral-7B, copy this file to configs/model/mistral.yaml and change
+# model_name to mistralai/Mistral-7B-Instruct-v0.3 — target_modules are the same.

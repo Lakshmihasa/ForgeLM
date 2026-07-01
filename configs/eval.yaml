@@ -1,0 +1,32 @@
+# Evaluation config for the baseline ladder (also consumed by scripts/serve.py).
+#
+#   python scripts/evaluate.py --config configs/eval.yaml \
+#       --adapter outputs/llama3-8b-qlora-r16
+#
+#   python scripts/serve.py --config configs/eval.yaml \
+#       --adapter outputs/llama3-8b-qlora-r16 --port 8000
+
+qlora:
+  model_name: meta-llama/Meta-Llama-3-8B-Instruct   # base for the ladder / serving
+
+data:
+  tables: data/raw/spider/tables.json
+  test_jsonl: data/processed/test.jsonl
+  train_jsonl: data/processed/train.jsonl           # few-shot source (TRAIN only)
+
+  # MUST match the serialize_kwargs used at training time (see qlora_r16.yaml).
+  serialize_kwargs:
+    include_types: true
+    include_primary_keys: true
+    include_foreign_keys: true
+
+  db_root: data/raw/spider/database
+  # Point at the multi-instance databases to enable test-suite execution
+  # accuracy (catches coincidental result-set matches). null = plain single-DB EX.
+  test_suite_root: null
+
+eval:
+  batch_size: 8
+  max_new_tokens: 256
+  few_shot_k: 5           # in-context examples for the base_few_shot rung
+  seed: 13
