@@ -7,7 +7,7 @@ OUT        ?= data/processed
 TRAIN_CFG  ?= configs/train/qlora_r16.yaml
 EVAL_CFG   ?= configs/eval.yaml
 
-.PHONY: install download data train eval sweep serve ui test lint fmt vendor-official clean
+.PHONY: install download data baseline train eval sweep serve ui test lint fmt vendor-official clean
 
 install:
 	pip install -e ".[dev]"
@@ -20,6 +20,9 @@ data:
 
 train:
 	python scripts/train.py --config $(TRAIN_CFG)
+
+baseline:
+	python scripts/evaluate.py --config $(EVAL_CFG) --out results/baselines
 
 eval:
 	python scripts/evaluate.py --config $(EVAL_CFG) --adapter $(ADAPTER)

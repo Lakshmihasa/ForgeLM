@@ -43,7 +43,8 @@ log = get_logger("evaluate")
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", required=True)
-    ap.add_argument("--adapter", required=True, help="trained LoRA adapter dir")
+    ap.add_argument("--adapter", default=None,
+                    help="trained LoRA adapter dir; omit for a baseline-only run")
     ap.add_argument("--few-shot-k", type=int, default=None)
     ap.add_argument("--out", default="results")
     ap.add_argument("--set", nargs="*", default=None)
@@ -85,12 +86,17 @@ def main() -> None:
     ladder.add(run("base_zero_shot", base, []))
     ladder.add(run("base_few_shot", base, few_shot))
 
-    # Fine-tuned = base + adapter. Wrap after the base conditions have run.
-    finetuned = PeftModel.from_pretrained(base, args.adapter)
-    ladder.add(run("finetuned", finetuned, []))
+    # Fine-tuned = base + adapter. Only when an adapter is given; omit it for a
+    # baseline-only pass to get a trustworthy number BEFORE spending GPU on training.
+    if args.adapter:
+        finetuned = PeftModel.from_pretrained(base, args.adapter)
+        ladder.add(run("finetuned", finetuned, []))
 
     # Report
-    summary = ladder.summary(baseline="base_few_shot", candidate="finetuned")
+    if args.adapter:
+        summary = ladder.summary(baseline="base_few_shot", candidate="finetuned")
+    else:
+        summary = "=== baseline ladder (no adapter) ===\n" + ladder.table()
     print("\n" + summary + "\n")
 
     # Persist predictions + a machine-readable results file.
@@ -98,14 +104,15 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     for c in ladder.conditions:
         save_predictions(c.predictions, out / f"pred_{c.name}.jsonl")
-    ci = ladder.gap_ci("base_few_shot", "finetuned")
     results = {
         "conditions": {c.name: c.accuracy for c in ladder.conditions},
-        "gap_finetuned_minus_base_few_shot": {
-            "estimate": ci.estimate, "low": ci.low, "high": ci.high, "n": ci.n,
-        },
         "few_shot_k": k,
     }
+    if args.adapter:
+        ci = ladder.gap_ci("base_few_shot", "finetuned")
+        results["gap_finetuned_minus_base_few_shot"] = {
+            "estimate": ci.estimate, "low": ci.low, "high": ci.high, "n": ci.n,
+        }
     (out / "results.json").write_text(json.dumps(results, indent=2))
     (out / "summary.txt").write_text(summary)
     print(f"predictions + results.json + summary.txt -> {out}")
