@@ -1,0 +1,25 @@
+services:
+  serve:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      BASE_MODEL: ${BASE_MODEL:-meta-llama/Meta-Llama-3-8B-Instruct}
+      TABLES_PATH: /app/data/raw/spider/tables.json
+      ADAPTER_DIR: /app/outputs/llama3-8b-qlora-r16/adapter
+      SERIALIZE_KWARGS: '{"include_types":true,"include_primary_keys":true,"include_foreign_keys":true}'
+      HF_TOKEN: ${HF_TOKEN}
+    volumes:
+      - ./data:/app/data:ro
+      - ./outputs:/app/outputs:ro
+      - hf-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  hf-cache:

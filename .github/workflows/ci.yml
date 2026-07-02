@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Install the package WITHOUT its heavy GPU deps (torch/transformers/etc.).
+      # The hermetic tests (extraction + harness parity) import only pure-Python
+      # modules; test_execution auto-skips when torch is absent.
+      - name: Install (no heavy deps)
+        run: |
+          pip install -e . --no-deps
+          pip install pyyaml numpy pytest ruff
+
+      - name: Lint
+        run: ruff check src tests scripts
+
+      - name: Test (hermetic)
+        run: pytest -q
