@@ -1,0 +1,16 @@
+text2sql-qlora
+Copyright (c) 2026 Lakshmi Hasa
+
+This product includes third-party software:
+
+- Spider evaluation scripts (evaluation.py, process_sql.py)
+  Source: https://github.com/taoyds/spider — License: Apache-2.0
+
+- Test-suite SQL evaluation (exec_eval.py)
+  Source: https://github.com/taoyds/test-suite-sql-eval
+
+These files are vendored under src/text2sql/eval/official/_vendor/ (fetched via
+scripts/vendor_official.sh) and retain their original licenses and copyright
+headers. They are not relicensed by this project.
+
+Datasets: Spider (Yale LILY) and BIRD are used under their respective terms.
