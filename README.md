@@ -2,7 +2,7 @@
 
 **QLoRA fine-tune of Llama-3-8B for text-to-SQL, measured by execution accuracy against a *fair few-shot baseline* on database schemas the model never saw during training.**
 
-The point of this project is not "I fine-tuned an LLM." It's **honest measurement**: every model — base zero-shot, base few-shot, and fine-tuned — runs through one frozen evaluation harness, scored with the official Spider evaluator via execution accuracy. The headline number is the delta over a base model that got a *fair* shot, not a strawman.
+The point of this project is not "I fine-tuned an LLM." It's **honest measurement**: every model — base zero-shot, base few-shot, and fine-tuned — runs through one frozen evaluation harness, scored with the official Spider evaluator via execution accuracy. The headline number is the delta over a base model that got a *fair* shot, not a strawman. 
 
 ---
 
