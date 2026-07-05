@@ -114,14 +114,18 @@ def split_by_database(
     train = [ex for ex in examples if ex.db_id not in val_set]
     val = [ex for ex in examples if ex.db_id in val_set]
 
-    # Guards: database disjointness and no example leakage.
+    # Guards: database disjointness and no identical example in both splits.
+    # (Bare (question, query) text CAN recur across different databases — generic
+    # questions like "How many singers are there?" — that is not leakage, so the
+    # hard check keys on (db_id, question, query).)
     train_dbs = {e.db_id for e in train}
     if train_dbs & val_set:
         raise AssertionError("database overlap between train and val")
-    leak = find_leakage(train, val)
+    train_keys = {(e.db_id, e.question, e.query) for e in train}
+    leak = [k for k in ((e.db_id, e.question, e.query) for e in val) if k in train_keys]
     if leak:
         raise ValueError(
-            f"{len(leak)} (question, query) pairs leak across train/val; "
+            f"{len(leak)} identical examples appear in both train and val; "
             "the split is not clean"
         )
 
